@@ -1,67 +1,66 @@
 services:
- prod:
-   build:
-     context: ./
-     dockerfile: prod.Dockerfile
-   container_name: prod
-   restart: always
-   privileged: true
-   logging:
-     options:
-       max-size: 20m
-   volumes:
-     - ~/dev_persistent_storage:/container_storage
-   environment:
-     - DEVICE_ID=${DEVICE_ID}
-     - API_GATEWAY_MILJOSTASJON_KEY=${PROD_API_GATEWAY_MILJOSTASJON_KEY}
-     - API_GATEWAY_MILJOSTASJON_URL=${PROD_API_GATEWAY_MILJOSTASJON_URL}
-     - SCHEDULE_SECONDS=300
-   command: python3 main.py
+  prod:
+    build:
+      context: ./
+      dockerfile: prod.Dockerfile
+    container_name: prod
+    restart: always
+    privileged: true
+    logging:
+      options:
+        max-size: 20m
+    volumes:
+      - ~/dev_persistent_storage:/home/pi/Desktop
+    devices:
+      - /dev/video0:/dev/video0
+      - /dev/ttyUSB0:/dev/ttyUSB0
+      - /dev/ttyUSB1:/dev/ttyUSB1
+    environment:
+      # Ikke nødvendig for kio hvis du bruker device_name fra config
+      # - DEVICE_ID=${DEVICE_ID}
+
+      - PROD_API_GATEWAY_CAMERA_KEY=${PROD_API_GATEWAY_CAMERA_KEY}
+      - PROD_API_GATEWAY_CAMERA_URL=${PROD_API_GATEWAY_CAMERA_URL}
+
+      - PROD_API_GATEWAY_SENSOR_KEY=${PROD_API_GATEWAY_SENSOR_KEY}
+      - PROD_API_GATEWAY_SENSOR_URL=${PROD_API_GATEWAY_SENSOR_URL}
+
+      - PROD_API_GATEWAY_LIFESIGNAL_KEY=${PROD_API_GATEWAY_LIFESIGNAL_KEY}
+      - PROD_API_GATEWAY_LIFESIGNAL_URL=${PROD_API_GATEWAY_LIFESIGNAL_URL}
+
+      # Valgfritt (hvis du har dev.env og vil at scriptet også skal poste DEV)
+      - DEV_API_GATEWAY_SENSOR_KEY=${DEV_API_GATEWAY_SENSOR_KEY}
+      - DEV_API_GATEWAY_SENSOR_URL=${DEV_API_GATEWAY_SENSOR_URL}
+
+    command: python3 main.py
 
   # dev:
   #   build:
   #     context: ./
   #     dockerfile: dev.Dockerfile
-  #   container_name: dev
+  #   container_name: kiovisits-dev
   #   restart: always
   #   privileged: true
   #   logging:
   #     options:
   #       max-size: 50m
   #   volumes:
-  #     - ~/dev_persistent_storage:/container_storage
+  #     - ~/dev_persistent_storage:/home/pi/Desktop
+  #   devices:
+  #     - /dev/video0:/dev/video0
+  #     - /dev/ttyUSB0:/dev/ttyUSB0
+  #     - /dev/ttyUSB1:/dev/ttyUSB1
   #   environment:
-  #     - DEVICE_ID=${DEVICE_ID}
-  #     - API_GATEWAY_MILJOSTASJON_KEY=${DEV_API_GATEWAY_MILJOSTASJON_KEY}
-  #     - API_GATEWAY_MILJOSTASJON_URL=${DEV_API_GATEWAY_MILJOSTASJON_URL}
-  #     - SCHEDULE_SECONDS=300
-  #   command: python3 main.py
-    
-  # portainer:
-  #   image: portainer/portainer-ce:latest
-  #   ports:
-  #     - 9443:9443
-  #   logging:
-  #     options:
-  #       max-size: 10m
-  #   volumes:
-  #     - data:/data
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   restart: unless-stopped
-volumes:
-  data:
-
-
-  # portainer_edge_agent:
-  #   image: portainer/agent
-  #   container_name: portainer_edge_agent
-  #   restart: always
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #     - /var/lib/docker/volumes:/var/lib/docker/volumes
-  #   environment:
-  #     EDGE: '1'
-  #     EDGE_ID: [EDGE_ID]
-  #     EDGE_KEY: [EDGE_KEY]
-  #   ports:
-  #     - "8000:8000"
+  #     - PROD_API_GATEWAY_CAMERA_KEY=${PROD_API_GATEWAY_CAMERA_KEY}
+  #     - PROD_API_GATEWAY_CAMERA_URL=${PROD_API_GATEWAY_CAMERA_URL}
+  #
+  #     - PROD_API_GATEWAY_SENSOR_KEY=${PROD_API_GATEWAY_SENSOR_KEY}
+  #     - PROD_API_GATEWAY_SENSOR_URL=${PROD_API_GATEWAY_SENSOR_URL}
+  #
+  #     - PROD_API_GATEWAY_LIFESIGNAL_KEY=${PROD_API_GATEWAY_LIFESIGNAL_KEY}
+  #     - PROD_API_GATEWAY_LIFESIGNAL_URL=${PROD_API_GATEWAY_LIFESIGNAL_URL}
+  #
+  #     - DEV_API_GATEWAY_SENSOR_KEY=${DEV_API_GATEWAY_SENSOR_KEY}
+  #     - DEV_API_GATEWAY_SENSOR_URL=${DEV_API_GATEWAY_SENSOR_URL}
+  #
+  #   command: python3 kioWebcamVisits.py

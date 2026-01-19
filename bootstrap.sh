@@ -35,7 +35,7 @@ cat <<EOF | sudo -E tee /etc/systemd/system/$SERVICE_NAME.service
 Description=Startup procedure
 
 [Service]
-WorkingDirectory=/home/miljostasjon/scripts
+WorkingDirectory=/home/kioVisitsWebcam/scripts
 ExecStart=$SCRIPT_PATH
 StandardOutput=syslog
 StandardError=syslog

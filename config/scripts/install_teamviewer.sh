@@ -52,7 +52,7 @@ if ! is_teamviewer_installed; then
     echo "TeamViewer installation completed."
 
     # Get Teamviewer ID from file
-    source /home/miljostasjon/teamviewer.env
+    source /home/kioVisitsWebcam/teamviewer.env
 
     # Auto-accept Teamviewer EULA
     sudo teamviewer daemon stop
