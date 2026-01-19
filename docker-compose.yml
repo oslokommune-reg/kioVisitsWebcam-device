@@ -1,0 +1,66 @@
+services:
+  prod:
+    build:
+      context: ./
+      dockerfile: prod.Dockerfile
+    container_name: prod
+    restart: always
+    privileged: true
+    logging:
+      options:
+        max-size: 20m
+    volumes:
+      - ~/dev_persistent_storage:/home/pi/Desktop
+    devices:
+      - /dev/video0:/dev/video0
+      - /dev/ttyUSB0:/dev/ttyUSB0
+      - /dev/ttyUSB1:/dev/ttyUSB1
+    environment:
+      # Ikke nødvendig for kio hvis du bruker device_name fra config
+      # - DEVICE_ID=${DEVICE_ID}
+
+      - PROD_API_GATEWAY_CAMERA_KEY=${PROD_API_GATEWAY_CAMERA_KEY}
+      - PROD_API_GATEWAY_CAMERA_URL=${PROD_API_GATEWAY_CAMERA_URL}
+
+      - PROD_API_GATEWAY_SENSOR_KEY=${PROD_API_GATEWAY_SENSOR_KEY}
+      - PROD_API_GATEWAY_SENSOR_URL=${PROD_API_GATEWAY_SENSOR_URL}
+
+      - PROD_API_GATEWAY_LIFESIGNAL_KEY=${PROD_API_GATEWAY_LIFESIGNAL_KEY}
+      - PROD_API_GATEWAY_LIFESIGNAL_URL=${PROD_API_GATEWAY_LIFESIGNAL_URL}
+
+      # Valgfritt (hvis du har dev.env og vil at scriptet også skal poste DEV)
+      - DEV_API_GATEWAY_SENSOR_KEY=${DEV_API_GATEWAY_SENSOR_KEY}
+      - DEV_API_GATEWAY_SENSOR_URL=${DEV_API_GATEWAY_SENSOR_URL}
+
+    command: python3 main.py
+
+  # dev:
+  #   build:
+  #     context: ./
+  #     dockerfile: dev.Dockerfile
+  #   container_name: kiovisits-dev
+  #   restart: always
+  #   privileged: true
+  #   logging:
+  #     options:
+  #       max-size: 50m
+  #   volumes:
+  #     - ~/dev_persistent_storage:/home/pi/Desktop
+  #   devices:
+  #     - /dev/video0:/dev/video0
+  #     - /dev/ttyUSB0:/dev/ttyUSB0
+  #     - /dev/ttyUSB1:/dev/ttyUSB1
+  #   environment:
+  #     - PROD_API_GATEWAY_CAMERA_KEY=${PROD_API_GATEWAY_CAMERA_KEY}
+  #     - PROD_API_GATEWAY_CAMERA_URL=${PROD_API_GATEWAY_CAMERA_URL}
+  #
+  #     - PROD_API_GATEWAY_SENSOR_KEY=${PROD_API_GATEWAY_SENSOR_KEY}
+  #     - PROD_API_GATEWAY_SENSOR_URL=${PROD_API_GATEWAY_SENSOR_URL}
+  #
+  #     - PROD_API_GATEWAY_LIFESIGNAL_KEY=${PROD_API_GATEWAY_LIFESIGNAL_KEY}
+  #     - PROD_API_GATEWAY_LIFESIGNAL_URL=${PROD_API_GATEWAY_LIFESIGNAL_URL}
+  #
+  #     - DEV_API_GATEWAY_SENSOR_KEY=${DEV_API_GATEWAY_SENSOR_KEY}
+  #     - DEV_API_GATEWAY_SENSOR_URL=${DEV_API_GATEWAY_SENSOR_URL}
+  #
+  #   command: python3 kioWebcamVisits.py
