@@ -1,13 +1,15 @@
-#Config file for raspberry pi camera or sensor
-#See readme file before setup
-#API keys are kept in apiConfig.py which is stored in AWS S3. 
+# Config file for raspberry pi camera or sensor
+# See readme file before setup
+# API keys are kept in apiConfig.py which is stored in AWS S3.
 
 # Enter device name to send corret variable values to main script.
-#*****************************************************************
+# *****************************************************************
 class DeviceConfig:
     def __init__(self):
         self.device_name = ""
-#*****************************************************************
+
+
+# *****************************************************************
 # GrefsenCamera
 # HaraldrudCamera
 # SmestadCamera
@@ -21,8 +23,7 @@ class DeviceConfig:
 # RyenGjenvinningSensor
 
 
-
-#Common value for all cameras
+# Common value for all cameras
 class CommonConfig:
     def __init__(self):
         self.picture_width = 1280
@@ -32,9 +33,9 @@ class CommonConfig:
 
 
 def get_device_class(device_name):
-    
-    #---------------All Cameras below here----------------
+    # ---------------All Cameras below here----------------
     if device_name == "GrefsenCamera":
+
         class GrefsenCamera:
             def __init__(self):
                 self.station_id = 29
@@ -51,9 +52,11 @@ def get_device_class(device_name):
                 self.sensor_id = None
                 self.plassering_id = None
                 self.enable_double_sensor = None
+
         return GrefsenCamera()
 
     elif device_name == "HaraldrudCamera":
+
         class HaraldrudCamera:
             def __init__(self):
                 self.station_id = 41
@@ -72,8 +75,9 @@ def get_device_class(device_name):
                 self.enable_double_sensor = None
 
         return HaraldrudCamera()
-    
+
     elif device_name == "SmestadCamera":
+
         class SmestadCamera:
             def __init__(self):
                 self.station_id = 82
@@ -94,6 +98,7 @@ def get_device_class(device_name):
         return SmestadCamera()
 
     elif device_name == "GronmoCamera":
+
         class GronmoCamera:
             def __init__(self):
                 self.station_id = 10
@@ -114,6 +119,7 @@ def get_device_class(device_name):
         return GronmoCamera()
 
     elif device_name == "HUACamera":
+
         class HUACamera:
             def __init__(self):
                 self.station_id = 10
@@ -133,9 +139,10 @@ def get_device_class(device_name):
 
         return HUACamera()
 
-    #---------------All Sensors below here----------------
+    # ---------------All Sensors below here----------------
 
     elif device_name == "HaraldrudGjenvinningSensor":
+
         class HaraldrudGjenvinningSensor:
             def __init__(self):
                 self.station_id = 41
@@ -151,12 +158,12 @@ def get_device_class(device_name):
                 self.device_id = "HARGJ_RPI_SENSOR_GATE"
                 self.picture_title = None
                 self.public_picture_name = None
-                self.enable_double_sensor = 1 # Two sensors installed, but only one calibrated. Exept all other stations, USB1 is the one active. therefore double sensor needs to be enabled.
-
+                self.enable_double_sensor = 1  # Two sensors installed, but only one calibrated. Exept all other stations, USB1 is the one active. therefore double sensor needs to be enabled.
 
         return HaraldrudGjenvinningSensor()
 
     elif device_name == "SmestadSensor":
+
         class SmestadSensor:
             def __init__(self):
                 self.station_id = 82
@@ -177,6 +184,7 @@ def get_device_class(device_name):
         return SmestadSensor()
 
     elif device_name == "HaraldrudHageSensor":
+
         class HaraldrudHageSensor:
             def __init__(self):
                 self.station_id = 31
@@ -197,6 +205,7 @@ def get_device_class(device_name):
         return HaraldrudHageSensor()
 
     elif device_name == "GronmoGjenvinningSensor":
+
         class GronmoGjenvinningSensor:
             def __init__(self):
                 self.station_id = 10
@@ -217,6 +226,7 @@ def get_device_class(device_name):
         return GronmoGjenvinningSensor()
 
     elif device_name == "GrefsenGjenvinningSensor":
+
         class GrefsenGjenvinningSensor:
             def __init__(self):
                 self.station_id = 29
@@ -224,7 +234,7 @@ def get_device_class(device_name):
                 self.sensor_id = 8
                 self.open_hour = 7
                 self.close_hour = 21
-                self.open_hour_weekend =7
+                self.open_hour_weekend = 7
                 self.close_hour_weekend = 21
                 self.enable_camera = 0
                 self.enable_sensor = 1
@@ -235,8 +245,9 @@ def get_device_class(device_name):
                 self.enable_double_sensor = None
 
         return GrefsenGjenvinningSensor()
-    
+
     elif device_name == "RyenGjenvinningSensor":
+
         class RyenGjenvinningSensor:
             def __init__(self):
                 self.station_id = 86
@@ -258,6 +269,3 @@ def get_device_class(device_name):
 
     else:
         raise ValueError("Invalid device name specified in the configuration.")
-
-
-
