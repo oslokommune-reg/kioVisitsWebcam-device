@@ -63,13 +63,8 @@ set_env_variables "${HOME_DIR}/prod.env"
 # -------------------------
 BASE_DIR="${HOME_DIR}"
 
-# IMPORTANT:
-# Set these to your project.
-# For miljøstasjon:
-#   REPO_NAME="miljostasjon-device"
-# For kioVisitsWebcam:
-#   REPO_NAME="kioVisitsWebcam-device"
-REPO_NAME="miljostasjon-device"
+
+REPO_NAME="kioVisitsWebcam-device"
 REPO_URL="https://github.com/oslokommune-reg/${REPO_NAME}.git"
 
 REPO_PATH="${BASE_DIR}/${REPO_NAME}"
