@@ -5,6 +5,10 @@
 Documentation for the sdm package is found here:
 https://github.com/gitbls/sdm/blob/master/Docs/Plugins.md#copyfile
 
+For windows, please install WSL to run following in a linux environment: 
+wsl --install -d Ubuntu
+
+
 
 Firstly, install SDM so that you can build the image(s):
 ```
