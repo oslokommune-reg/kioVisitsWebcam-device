@@ -1,21 +1,22 @@
 import cv2
 import numpy as np
 
+
 def blur(picture_name):
     try:
-        img = cv2.imread(picture_name) 
-        
+        img = cv2.imread(picture_name)
+
         # Neglected pixels from the top
         noBlur = 100
 
         # Height, width, number of channels in the image
         height, width, _ = img.shape
-        
+
         # Total number of zones (blur resolution)
         zones = 400
-        
+
         # Maximum blur value
-        blurMax = 17 #17
+        blurMax = 17  # 17
 
         for n in range(zones):
             # Calculate the blur level for the current zone
@@ -45,5 +46,3 @@ def blur(picture_name):
 
     except Exception as e:
         print("Error:", e)
-
-

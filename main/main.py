@@ -119,7 +119,9 @@ def check_opening_hours():
         station_status = 0 if (hours < open_hour or hours > close_hour) else 1
 
     elif day in ["Fri", "Sat"]:
-        station_status = 0 if (hours < open_hour_weekend or hours > close_hour_weekend) else 1
+        station_status = (
+            0 if (hours < open_hour_weekend or hours > close_hour_weekend) else 1
+        )
 
     elif day == "Sun":
         station_status = 0
@@ -138,7 +140,9 @@ def print_status():
             log.info("%s Station open", timestamp)
 
         old_minutes = minutes
-        log.info("-------------------------------------------------------------------------------")
+        log.info(
+            "-------------------------------------------------------------------------------"
+        )
 
 
 # Functions for Webcam only
@@ -172,9 +176,13 @@ def take_picture():
 
         os.system(executor)
 
-        log.info("-------------------------------------------------------------------------------")
+        log.info(
+            "-------------------------------------------------------------------------------"
+        )
         log.info("%s: File %s is saved.", ts, picture_name)
-        log.info("-------------------------------------------------------------------------------")
+        log.info(
+            "-------------------------------------------------------------------------------"
+        )
 
         if enable_blur == 1:
             add_blur(picture_name)
@@ -191,13 +199,17 @@ def add_blur(picture_name):
     log.info("Adding blur.")
     response = blur(picture_name)  # Separate script adding blur to the picture
     log.info("%s", response)
-    log.info("-------------------------------------------------------------------------------")
+    log.info(
+        "-------------------------------------------------------------------------------"
+    )
 
 
 def delete_picture(picture_name):
     os.remove(picture_name)
     log.info("File deleted successfully from Raspberry Pi: %s", picture_name)
-    log.info("-------------------------------------------------------------------------------")
+    log.info(
+        "-------------------------------------------------------------------------------"
+    )
 
 
 def post_picture_reg_prod(picture_name):
@@ -207,14 +219,18 @@ def post_picture_reg_prod(picture_name):
     url = camera_api_url_prod + public_picture_name
     response = requests.request("PUT", url, headers=headers, data=payload)
     log.info("Reply from REG AWS Prod: %s", response.text)
-    log.info("-------------------------------------------------------------------------------")
+    log.info(
+        "-------------------------------------------------------------------------------"
+    )
     delete_picture(picture_name)
 
 
 # Functions for sensors only
 def check_sensor():
     if ser_bytes_1.in_waiting > 0:
-        ser_bytes_1.read(ser_bytes_1.in_waiting).decode("utf-8")  # Les bytes og tøm køen
+        ser_bytes_1.read(ser_bytes_1.in_waiting).decode(
+            "utf-8"
+        )  # Les bytes og tøm køen
 
         if station_status == 1:
             sensor = "Main sensor"
@@ -223,11 +239,15 @@ def check_sensor():
                 save_data_to_file(sensor, "DEV")
         else:
             log.info("Visitor outside opening hours main sensor")
-            log.info("-------------------------------------------------------------------------------")
+            log.info(
+                "-------------------------------------------------------------------------------"
+            )
 
     if enable_double_sensor == 1:
         if ser_bytes_2.in_waiting > 0:
-            ser_bytes_2.read(ser_bytes_2.in_waiting).decode("utf-8")  # Les bytes og tøm køen
+            ser_bytes_2.read(ser_bytes_2.in_waiting).decode(
+                "utf-8"
+            )  # Les bytes og tøm køen
 
             if station_status == 1:
                 sensor = "Second sensor"
@@ -236,7 +256,9 @@ def check_sensor():
                     save_data_to_file(sensor, "DEV")
             else:
                 log.info("Visitor outside opening hours secondary sensor")
-                log.info("-------------------------------------------------------------------------------")
+                log.info(
+                    "-------------------------------------------------------------------------------"
+                )
 
 
 def save_data_to_file(sensor, environment="PROD"):
@@ -260,7 +282,9 @@ def save_data_to_file(sensor, environment="PROD"):
         json.dump(data, file)
         file.write("\n")
 
-    log.info("Data saved to %s file: %s %s %s", environment, sensor, datetime.now(), data)
+    log.info(
+        "Data saved to %s file: %s %s %s", environment, sensor, datetime.now(), data
+    )
 
     try_post_data_from_file(environment)
 
@@ -298,7 +322,9 @@ def try_post_data_from_file(environment="PROD"):
             response = requests.post(api_url, headers=headers, data=data_json)
 
             if response.status_code == 200:
-                log.info("Successfully uploaded data to %s: %s", environment, response.text)
+                log.info(
+                    "Successfully uploaded data to %s: %s", environment, response.text
+                )
             else:
                 log.warning(
                     "Failed to upload data to %s. Keeping in file. Response: %s %s",
@@ -312,25 +338,38 @@ def try_post_data_from_file(environment="PROD"):
         with open(file_name, "w") as file:
             file.writelines(remaining_lines)
 
-        log.info("-------------------------------------------------------------------------------")
+        log.info(
+            "-------------------------------------------------------------------------------"
+        )
 
     except FileNotFoundError:
         log.info("No file found for %s. No data to upload.", environment)
     except Exception as e:
-        log.exception("An error occurred while uploading data to %s: %s", environment, e)
+        log.exception(
+            "An error occurred while uploading data to %s: %s", environment, e
+        )
         restart_script()
-        log.info("-------------------------------------------------------------------------------")
+        log.info(
+            "-------------------------------------------------------------------------------"
+        )
 
 
 # Functions for Raspberry Pi monitoring (lifesignal to AWS)
 def send_lifesignal_prod():
     try:
         payload = json.dumps({"sensor_id": device_id})
-        headers = {"x-api-key": lifesignal_api_key_prod, "Content-Type": "application/json"}
+        headers = {
+            "x-api-key": lifesignal_api_key_prod,
+            "Content-Type": "application/json",
+        }
         log.info("Posting lifesignal to REG AWS Prod: %s %s", datetime.now(), payload)
-        response = requests.request("POST", lifesignal_api_url_prod, headers=headers, data=payload)
+        response = requests.request(
+            "POST", lifesignal_api_url_prod, headers=headers, data=payload
+        )
         log.info("Reply from REG AWS Prod: %s", response.text)
-        log.info("-------------------------------------------------------------------------------")
+        log.info(
+            "-------------------------------------------------------------------------------"
+        )
     except Exception:
         log.exception("Error sending lifesignal")
         restart_script()
@@ -347,7 +386,9 @@ log.info(
     enable_camera,
     enable_blur,
 )
-log.info("-------------------------------------------------------------------------------")
+log.info(
+    "-------------------------------------------------------------------------------"
+)
 
 # Take picture at startup
 if enable_camera == 1:
