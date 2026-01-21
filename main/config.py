@@ -2,25 +2,18 @@
 # See readme file before setup
 # API keys are kept in apiConfig.py which is stored in AWS S3.
 
-# Enter device name to send corret variable values to main script.
+# Enter device name in prod.env to send corret variable values to main script.
 # *****************************************************************
+import os
+
+
 class DeviceConfig:
     def __init__(self):
-        self.device_name = ""
+        # Use env override if set, else keep existing default
+        self.device_name = os.getenv("DEVICE_NAME", "GrefsenGjenvinningSensor")
 
 
 # *****************************************************************
-# GrefsenCamera
-# HaraldrudCamera
-# SmestadCamera
-# GronmoCamera
-# HUACamera
-# HaraldrudGjenvinningSensor
-# SmestadSensor
-# HaraldrudHageSensor
-# GronmoGjenvinningSensor
-# GrefsenGjenvinningSensor
-# RyenGjenvinningSensor
 
 
 # Common value for all cameras
