@@ -5,12 +5,15 @@
 # Enter device name in prod.env to send corret variable values to main script.
 # *****************************************************************
 import os
+
+
 class DeviceConfig:
     def __init__(self):
         # Use env override if set, else keep existing default
         self.device_name = os.getenv("DEVICE_NAME", "GrefsenGjenvinningSensor")
-#*****************************************************************
 
+
+# *****************************************************************
 
 
 # Common value for all cameras
