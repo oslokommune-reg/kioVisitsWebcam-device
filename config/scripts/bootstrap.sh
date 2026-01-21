@@ -45,7 +45,7 @@ else
 fi
 
 # ------------------------------------------------------------
-# Systemd service to run startup.sh at boot
+# Systemd service to run startup.sh at boot (ONESHOT)
 # ------------------------------------------------------------
 echo "Creating systemd service..."
 cat <<EOF | sudo -E tee /etc/systemd/system/$SERVICE_NAME.service
@@ -56,12 +56,12 @@ Wants=network-online.target
 Requires=docker.service
 
 [Service]
+Type=oneshot
+RemainAfterExit=yes
 WorkingDirectory=/home/${USER}
 ExecStart=$SCRIPT_PATH
 StandardOutput=syslog
 StandardError=syslog
-Restart=always
-RestartSec=10
 
 [Install]
 WantedBy=graphical.target
@@ -69,15 +69,13 @@ EOF
 
 sudo systemctl daemon-reload
 sudo systemctl enable $SERVICE_NAME.service
-sudo systemctl start $SERVICE_NAME.service
+sudo systemctl restart $SERVICE_NAME.service
 
 # ------------------------------------------------------------
 # Daily reboot fallback (same pattern as miljøstasjon)
 # ------------------------------------------------------------
 echo "Setting up daily reboot..."
 (crontab -l 2>/dev/null; echo "0 2 * * * /sbin/shutdown -r now") | crontab -
-
-
 
 # # Get Teamviewer ID from file
 # source ./home/${USER}/teamviewer.env

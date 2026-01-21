@@ -10,7 +10,8 @@ services:
       options:
         max-size: 20m
     volumes:
-      - ~/dev_persistent_storage:/home/pi/Desktop
+      - /home/kioVisitsWebcam/dev_persistent_storage:/home/pi/Desktop
+
     devices:
       - /dev/video0:/dev/video0
       - /dev/ttyUSB0:/dev/ttyUSB0
