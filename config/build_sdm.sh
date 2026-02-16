@@ -17,7 +17,6 @@ sudo sdm --customize kioVisitsWebcam-pi.img \
     --extend --xmb 2048 \
     --plugin user:"adduser=kioVisitsWebcam|password=$DEVICE_PWD" \
     --plugin user:"deluser=pi" \
-    --plugin disables:"piwiz|wifi|bluetooth" \
     --plugin bootconfig:"section=[all]|arm_freq=900|arm_freq_max=900" \
     --plugin raspiconfig:"boot_behavior=B4" \
     --plugin L10n:"keymap=no|locale=en_US.UTF-8 UTF-8|timezone=Europe/Oslo" \
