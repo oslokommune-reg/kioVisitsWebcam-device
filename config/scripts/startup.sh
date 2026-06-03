@@ -1,139 +1,162 @@
 #!/bin/bash
-set -euo pipefail
+# ============================================================
+# kioVisitsWebcam startup script
+# Runs at boot via systemd (kioVisitsWebcam-startup.service)
+# ============================================================
 
-# ------------------------------------------------------------
-# Startup script (kio/miljøstasjon style)
-# - Ensures TeamViewer daemon is running
-# - Loads local env files (dev/prod) from /home/<user>/
-# - Ensures repo exists under /home/<user>/<REPO_NAME>
-# - Marks repo as git safe.directory (fix "dubious ownership")
-# - Pulls only when remote has new code AND repo is clean
-# - Runs docker compose (rebuild only when code changed)
-# - Performs safe docker cleanup
-# ------------------------------------------------------------
-
-# Resolve script directory and move there first (for any local helper scripts)
+# Run from the directory the script lives in (resolved to absolute path)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$SCRIPT_DIR"
-echo "SCRIPT_DIR: $PWD"
+cd "$SCRIPT_DIR" || { echo "ERROR: cannot cd into script dir"; exit 1; }
+echo "Running from: $PWD"
 
-# Function to check if TeamViewer daemon is active
+# ------------------------------------------------------------
+# TeamViewer daemon
+# ------------------------------------------------------------
 is_teamviewer_daemon_active() {
-  systemctl is-active --quiet teamviewerd
+    systemctl is-active --quiet teamviewerd
 }
 
-# Start TeamViewer daemon if not active
 if ! is_teamviewer_daemon_active; then
-  echo "Starting TeamViewer daemon..."
-  sudo teamviewer daemon enable || true
-  sudo teamviewer daemon start || true
-  echo "TeamViewer daemon started."
+    echo "Starting TeamViewer daemon..."
+    sudo teamviewer daemon enable
+    sudo teamviewer daemon start
 else
-  echo "No need to start TeamViewer daemon. It's already running."
+    echo "TeamViewer daemon already running."
 fi
 
-# Assign host to Teamviewer client using token (optional)
+# Assign host to Teamviewer client using token
 # ./scripts/enroll_teamviewer_host.sh
 
-# -------------------------
-# Local env files (not in git)
-# -------------------------
-set_env_variables() {
-  local env_file="$1"
-  if [ -f "$env_file" ]; then
-    echo "Setting environment variables from $env_file"
-    set -a
-    # shellcheck source=/dev/null
-    source "$env_file"
-    set +a
-  else
-    echo "Environment file $env_file not found."
-  fi
-}
+# ------------------------------------------------------------
+# Load configuration (REPO_NAME, REPO_URL, DEVICE_ID, ...)
+# ------------------------------------------------------------
+config_path="./scripts/config.sh"
+fallback_config_path="./config.sh"
 
-# Always load local env from HOME (persists across git pulls)
-USER_NAME="${USER:-$(whoami)}"
-HOME_DIR="/home/${USER_NAME}"
-
-set_env_variables "${HOME_DIR}/dev.env"
-set_env_variables "${HOME_DIR}/prod.env"
-
-# -------------------------
-# Repo bootstrap (standardized location)
-# -------------------------
-BASE_DIR="${HOME_DIR}"
-
-
-REPO_NAME="kioVisitsWebcam-device"
-REPO_URL="https://github.com/oslokommune-reg/${REPO_NAME}.git"
-
-REPO_PATH="${BASE_DIR}/${REPO_NAME}"
-
-mkdir -p "$BASE_DIR"
-cd "$BASE_DIR"
-echo "BASE_DIR: $PWD"
-
-# Clone if missing (no pull here)
-if [ -d "${REPO_PATH}/.git" ]; then
-  echo "Repository exists: ${REPO_PATH} (no clone needed)."
+if [ -f "$config_path" ]; then
+    # shellcheck disable=SC1090
+    . "$config_path"
+    echo "Loaded configuration from $config_path"
+elif [ -f "$fallback_config_path" ]; then
+    # shellcheck disable=SC1090
+    . "$fallback_config_path"
+    echo "Loaded configuration from $fallback_config_path"
 else
-  echo "Cloning repository ${REPO_URL} -> ${REPO_PATH}"
-  git clone "$REPO_URL" "$REPO_PATH"
+    echo "ERROR: Configuration file not found in either path."
+    exit 1
 fi
 
-# Fix git "dubious ownership" for non-sudo git
-git config --global --add safe.directory "$REPO_PATH" || true
+# ------------------------------------------------------------
+# Load env files (secrets)
+# NOTE: env files live in the user's home directory, one level
+# above this script (~/dev.env, ~/prod.env), not inside ~/scripts.
+# ------------------------------------------------------------
+set_env_variables() {
+    local env_file=$1
+    if [ -f "$env_file" ]; then
+        echo "Setting environment variables from $env_file"
+        set -a
+        # shellcheck disable=SC1090
+        source "$env_file"
+        set +a
+    else
+        echo "WARNING: Environment file $env_file not found."
+    fi
+}
 
-cd "$REPO_PATH"
-echo "REPO_DIR: $PWD"
+set_env_variables '../dev.env'
+set_env_variables '../prod.env'
 
-# Clean apt cache (safe)
-sudo apt-get clean || true
+# Sanity check: warn loudly if the variables compose.yml needs are empty.
+if [ -z "${PROD_API_GATEWAY_CAMERA_KEY:-}" ] || [ -z "${PROD_API_GATEWAY_CAMERA_URL:-}" ]; then
+    echo "WARNING: PROD_API_GATEWAY_CAMERA_KEY or PROD_API_GATEWAY_CAMERA_URL is empty. Check ../prod.env."
+fi
 
-# Update all systemctl daemon in case any changes have been made (testing)
-sudo systemctl daemon-reload || true
+# ------------------------------------------------------------
+# Git: clone if missing, fetch, rebuild only on new commits
+# ------------------------------------------------------------
+BRANCH="${REPO_BRANCH:-main}"
 
-# -------- Conditional rebuild only when code changed --------
-git fetch --quiet || true
+# Clone if the repo doesn't exist yet
+if [ ! -d "$REPO_NAME/.git" ]; then
+    echo "Cloning $REPO_URL (branch $BRANCH)..."
+    if ! git clone --branch "$BRANCH" "$REPO_URL" "$REPO_NAME"; then
+        echo "ERROR: git clone failed; aborting startup."
+        exit 1
+    fi
+fi
+
+REPO_PATH="$(realpath "$REPO_NAME")"
+
+# Whitelist the repo for ALL users (writes to /etc/gitconfig).
+# Without this, 'git fetch' silently fails when systemd runs the script as
+# root and the repo is owned by the regular user (or vice versa).
+# Idempotent — git deduplicates entries on its own.
+git config --system --add safe.directory "$REPO_PATH" 2>/dev/null || true
+
+cd "$REPO_PATH" || { echo "ERROR: cannot cd into $REPO_PATH"; exit 1; }
+
+echo "Currently at: $(git rev-parse --short HEAD) — $(git log -1 --format=%s)"
+
+# General housekeeping (runs regardless of pull result)
+sudo apt-get clean
+sudo systemctl daemon-reload
+
+# Fetch — intentionally NOT --quiet so failures appear in journalctl
+if ! git fetch origin "$BRANCH"; then
+    echo "WARNING: git fetch failed; running existing containers without update."
+    sudo -E docker compose up -d --remove-orphans
+    exit 0
+fi
+
 LOCAL="$(git rev-parse HEAD)"
-REMOTE="$(git rev-parse @{u} 2>/dev/null || echo "$LOCAL")"
+REMOTE="$(git rev-parse "origin/$BRANCH")"
 
-# If local repo has uncommitted changes, do NOT pull automatically
-if ! git diff --quiet || ! git diff --cached --quiet; then
-  echo "Local changes detected; skipping git pull."
-  # Still ensure containers are running
-  sudo -E docker compose up -d --remove-orphans
+if [ "$LOCAL" = "$REMOTE" ]; then
+    echo "Already up to date at $LOCAL; ensuring containers are running."
+    sudo -E docker compose up -d --remove-orphans
 else
-  if [ "$LOCAL" != "$REMOTE" ]; then
-    echo "Remote has new code. Pulling and rebuilding..."
-    git pull --ff-only
+    echo "New commits on origin/$BRANCH: $LOCAL -> $REMOTE"
+
+    if ! git pull --ff-only origin "$BRANCH"; then
+        echo "ERROR: git pull --ff-only failed (likely non-fast-forward). Manual fix needed."
+        sudo -E docker compose up -d --remove-orphans
+        exit 1
+    fi
+
+    echo "Now at: $(git rev-parse --short HEAD) — $(git log -1 --format=%s)"
+
     sudo -E docker compose down --remove-orphans || true
     sudo -E docker compose build --pull
     sudo -E docker compose up -d --force-recreate --remove-orphans
-  else
-    echo "No new code. Ensuring containers are running..."
-    sudo -E docker compose up -d --remove-orphans
-  fi
 fi
-# ------------------------------------------------------------
 
-# -------- Auto-cleanup (safe, cache-friendly) ---------------
-sudo docker image prune -f || true  # dangling only
+# ------------------------------------------------------------
+# Docker auto-cleanup (safe, cache-friendly)
+# ------------------------------------------------------------
+echo "Running docker cleanup..."
+
+# Always: cheap cleanups
+sudo docker image prune -f                                  # dangling images
+sudo docker container prune -f --filter "until=720h"        # stopped >30d
 
 DOCKER_DIR="${DOCKER_DIR:-/var/lib/docker}"
-FREE_MB="$(df -Pm "$DOCKER_DIR" | awk 'NR==2{print $4}')"
-THRESHOLD_MB=2048  # 2 GB threshold
+FREE_MB=$(df -Pm "$DOCKER_DIR" | awk 'NR==2{print $4}')
+THRESHOLD_MB=3072                                           # 3 GB threshold
 
-if [ "${FREE_MB:-999999}" -lt "$THRESHOLD_MB" ]; then
-  echo "Low disk space detected (${FREE_MB} MB free). Running deeper cleanup..."
-  sudo docker image prune -a -f --filter "until=720h" || true
-  sudo docker builder prune -f --filter "until=720h" || true
-  sudo docker network prune -f || true
+echo "Free space at $DOCKER_DIR: ${FREE_MB:-unknown}MB (threshold: ${THRESHOLD_MB}MB)"
+
+if [ "${FREE_MB:-0}" -lt "$THRESHOLD_MB" ]; then
+    echo "Low disk space — running aggressive prune (>30d only)."
+    sudo docker image prune -a -f --filter "until=720h"
+    sudo docker builder prune -f --filter "until=720h"
+    sudo docker network prune -f
 fi
 
 if [ "$(date +%d)" = "01" ]; then
-  echo "Monthly cleanup..."
-  sudo docker image prune -a -f --filter "until=720h" || true
-  sudo docker builder prune -f --filter "until=720h" || true
+    echo "Monthly housekeeping prune."
+    sudo docker image prune -a -f --filter "until=720h"
+    sudo docker builder prune -f --filter "until=720h"
 fi
-# ------------------------------------------------------------
+
+echo "Startup complete."

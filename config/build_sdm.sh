@@ -6,7 +6,7 @@ set +a
 
 SRC_IMAGE_NAME="2024-11-19-raspios-bookworm-arm64.img"
 
-rm kioVisitsWebcam-pi.img
+rm -f kioVisitsWebcam-pi.img
 echo "Removed old image from working directory"
 
 cp ./images/$SRC_IMAGE_NAME kioVisitsWebcam-pi.img
