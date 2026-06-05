@@ -48,7 +48,8 @@ fi
 # Systemd service to run startup.sh at boot (ONESHOT)
 # ------------------------------------------------------------
 echo "Creating systemd service..."
-cat <<EOF | sudo -E tee /etc/systemd/system/$SERVICE_NAME.service
+
+sudo tee /etc/systemd/system/kioVisitsWebcam-startup.service >/dev/null <<'EOF'
 [Unit]
 Description=Startup procedure (kioVisitsWebcam)
 After=network-online.target docker.service
@@ -58,18 +59,27 @@ Requires=docker.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-WorkingDirectory=/home/${USER}
-ExecStart=$SCRIPT_PATH
-StandardOutput=syslog
-StandardError=syslog
+User=kioVisitsWebcam
+Group=kioVisitsWebcam
+Environment=HOME=/home/kioVisitsWebcam
+WorkingDirectory=/home/kioVisitsWebcam
+ExecStart=/home/kioVisitsWebcam/scripts/startup.sh
+StandardOutput=journal
+StandardError=journal
 
 [Install]
 WantedBy=graphical.target
 EOF
 
+# 2) Reload og restart
 sudo systemctl daemon-reload
-sudo systemctl enable $SERVICE_NAME.service
-sudo systemctl restart $SERVICE_NAME.service
+sudo systemctl enable kioVisitsWebcam-startup
+sudo systemctl restart kioVisitsWebcam-startup
+
+# 3) Verifiser at det er riktig nå
+systemctl show -p User -p Group -p Type kioVisitsWebcam-startup
+sudo journalctl -u kioVisitsWebcam-startup -n 80 --no-pager
+
 
 # ------------------------------------------------------------
 # Daily reboot fallback (same pattern as miljøstasjon)
