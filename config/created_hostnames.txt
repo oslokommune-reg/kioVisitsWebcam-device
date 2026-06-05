@@ -1,1 +1,4 @@
-kioVisitsWebcam-1 (HUA)
+kioVisitsWebcam-5 (Grønmo Visits)
+kioVisitsWebcam-7 (HUA Kø)
+kioVisitsWebcam-8 (Haraldrud Kø)
+kioVisitsWebcam-9 (-)

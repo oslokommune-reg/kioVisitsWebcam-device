@@ -6,7 +6,7 @@ set +a
 
 SRC_IMAGE_NAME="2024-11-19-raspios-bookworm-arm64.img"
 
-rm kioVisitsWebcam-pi.img
+rm -f kioVisitsWebcam-pi.img
 echo "Removed old image from working directory"
 
 cp ./images/$SRC_IMAGE_NAME kioVisitsWebcam-pi.img
@@ -17,7 +17,6 @@ sudo sdm --customize kioVisitsWebcam-pi.img \
     --extend --xmb 2048 \
     --plugin user:"adduser=kioVisitsWebcam|password=$DEVICE_PWD" \
     --plugin user:"deluser=pi" \
-    --plugin disables:"piwiz|wifi|bluetooth" \
     --plugin bootconfig:"section=[all]|arm_freq=900|arm_freq_max=900" \
     --plugin raspiconfig:"boot_behavior=B4" \
     --plugin L10n:"keymap=no|locale=en_US.UTF-8 UTF-8|timezone=Europe/Oslo" \
