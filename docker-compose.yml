@@ -18,22 +18,6 @@ services:
       - /dev/ttyUSB1:/dev/ttyUSB1
     env_file:
       - /home/kioVisitsWebcam/prod.env
-    environment:
-      # Ikke nødvendig for kio hvis du bruker device_name fra config
-      # - DEVICE_ID=${DEVICE_ID}
-
-      - PROD_API_GATEWAY_CAMERA_KEY=${PROD_API_GATEWAY_CAMERA_KEY}
-      - PROD_API_GATEWAY_CAMERA_URL=${PROD_API_GATEWAY_CAMERA_URL}
-
-      - PROD_API_GATEWAY_SENSOR_KEY=${PROD_API_GATEWAY_SENSOR_KEY}
-      - PROD_API_GATEWAY_SENSOR_URL=${PROD_API_GATEWAY_SENSOR_URL}
-
-      - PROD_API_GATEWAY_LIFESIGNAL_KEY=${PROD_API_GATEWAY_LIFESIGNAL_KEY}
-      - PROD_API_GATEWAY_LIFESIGNAL_URL=${PROD_API_GATEWAY_LIFESIGNAL_URL}
-
-      # Valgfritt (hvis du har dev.env og vil at scriptet også skal poste DEV)
-      - DEV_API_GATEWAY_SENSOR_KEY=${DEV_API_GATEWAY_SENSOR_KEY}
-      - DEV_API_GATEWAY_SENSOR_URL=${DEV_API_GATEWAY_SENSOR_URL}
 
     command: python3 main.py
 
