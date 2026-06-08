@@ -3,8 +3,8 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ENV_FILE="$SCRIPT_DIR/../prod.env"
+REPO_DIR="/home/kioVisitsWebcam/kioVisitsWebcam-device"
+ENV_FILE="/home/kioVisitsWebcam/prod.env"
 
 # Bekreftelsesprompt
 echo "Dette vil stoppe containeren, slette imaget og bygge alt på nytt."
@@ -19,7 +19,7 @@ else
     echo "ADVARSEL: $ENV_FILE ikke funnet — env-variabler mangler."
 fi
 
-cd "$SCRIPT_DIR"
+cd "$REPO_DIR"
 
 echo "==> Stopper og fjerner containere..."
 sudo -E docker compose down --remove-orphans
